@@ -1,80 +1,109 @@
-#include <ncurses/curses.h>
+#include <iostream>
+#include <fstream>
+#include <string>
 
-void print_menu(WINDOW *menu_win, int pilihanTerpilih, const char *opsi[], int jumlahOpsi);
+using namespace std;
 
-int main() {
-    initscr();
-    clear();
-    noecho();
-    cbreak();
-    curs_set(0);
+int main();
 
-    int awalX = 0, awalY = 0;
-    int lebar = 20, tinggi = 6;
+void registration(){
+    ofstream myFile, acclist;
+    string userReg;
 
-    WINDOW *menu_win = newwin(tinggi, lebar, awalY, awalX);
-    keypad(menu_win, TRUE);
+    system("cls");
+    cout << "------------REGISTER------------" << endl;
+    cout << "Enter Username : ";
+    cin >> userReg;
 
-    const char *opsi[] = {
-        "Pilihan 1",
-        "Pilihan 2",
-        "Pilihan 3",
-        "Keluar"
-    };
+    cout << endl;
 
-    int jumlahOpsi = sizeof(opsi) / sizeof(opsi[0]);
-    int pilihanTerpilih = 0;
-    int pilihan = -1;
+    myFile.open(userReg + ".txt");
+    myFile << 0;
+    myFile.close();
 
-    while (1) {
-        print_menu(menu_win, pilihanTerpilih, opsi, jumlahOpsi);
-        int tombol = wgetch(menu_win);
+    acclist.open("ListAccount.txt", ios::app);
+    acclist << userReg << endl;
+    acclist.close();
 
-        switch (tombol) {
-            case KEY_UP:
-                if (pilihanTerpilih <= 0)
-                    pilihanTerpilih = jumlahOpsi - 1;
-                else
-                    --pilihanTerpilih;
-                break;
+    system("cls");
+    cout << "Registration Successfull" << endl;
+    main();
+}
 
-            case KEY_DOWN:
-                if (pilihanTerpilih >= jumlahOpsi - 1)
-                    pilihanTerpilih = 0;
-                else
-                    ++pilihanTerpilih;
-                break;
+void login(){
+    ifstream myFile;
+    string userLog;
+    string userData;
+    bool exist = false;
 
-            case 10: // Enter key
-                pilihan = pilihanTerpilih;
-                break;
+    system("cls");
+    cout << "------------LOGIN------------" << endl;
+    cout << "Enter Username : ";
+    cin >> userLog;
 
-            default:
-                break;
+    cout << endl;
+
+    myFile.open("ListAccount.txt");
+    while (myFile >> userData){
+        if(userData == userLog){
+            exist = true;
         }
+    }
+    myFile.close();
 
-        if (pilihan == 3)
+    if (exist == true){
+        ifstream myFileRead;
+        myFileRead.open(userLog + ".txt");
+        
+        system("cls");
+        cout << "Login Successfull" << endl;
+
+        int topScore;
+        cout << "Input Top Score : ";
+        cin >> topScore;
+
+        ofstream scoreFile;
+        ifstream scoreCheck;
+        int currentScore;
+
+        scoreCheck.open(userLog + ".txt");
+        scoreCheck >> currentScore;
+        scoreCheck.close();
+
+        if (topScore > currentScore){
+            scoreFile.open(userLog + ".txt");
+            scoreFile << topScore << endl;
+            scoreFile.close();
+
+            cout << "\nYour Top Score Is : " << topScore << endl;
+        }
+        
+        myFileRead.close();
+    } else {
+        system("cls");
+        cout << "------------------------------------" << endl;
+        cout << "            LOGIN ERROR             " << endl;
+        cout << " Please check your username and password" << endl;
+        cout << "------------------------------------" << endl;
+        main();
+    }
+}
+
+int main(){
+    int choice;
+    cout << "1. Registration" << endl;
+    cout << "2. Login" << endl;
+    cout << "3. Input Your Choice : ";
+    cin >> choice;
+
+    switch(choice){
+        case 1:
+            registration();
+            break;
+        case 2:
+            login();
             break;
     }
 
-    clrtoeol();
-    refresh();
-    endwin();
     return 0;
-}
-
-void print_menu(WINDOW *menu_win, int pilihanTerpilih, const char *opsi[], int jumlahOpsi) {
-    box(menu_win, 0, 0);
-
-    for (int i = 0; i < jumlahOpsi; ++i) {
-        if (i == pilihanTerpilih) {
-            wattron(menu_win, A_REVERSE);
-            mvwprintw(menu_win, i + 1, 1, "%s", opsi[i]);
-            wattroff(menu_win, A_REVERSE);
-        } else {
-            mvwprintw(menu_win, i + 1, 1, "%s", opsi[i]);
-        }
-    }
-
-    wrefresh(menu_win);
 }
